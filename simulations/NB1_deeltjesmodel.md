@@ -547,7 +547,6 @@ Test wederom je code door de vernieuwde functie hierboven te plakken.
 dt = 0.1         # time step
 num_steps = 500  # number of time steps
 particle = ParticleClass(m=1.0, v=[-5.0, 0], r=[0.0, 0.0],R=1.0)  
-
 # Create the figure and axis
 fig, ax = plt.subplots()
 ax.set_xlim(-10, 10)
@@ -570,9 +569,9 @@ def update(frame):
 ### YOUR CODE HERE ###
     return dot,
     if particle.r[0]>10:
-        particle.v[0]=-1*particle.v[0]
+        particle.v[0]=-particle.v[0]
     if particle.r[0]<-10:
-        particle.v[0]=-1*particle.v[0]
+        particle.v[0]=-particle.v[0]
 ani = FuncAnimation(fig, update, frames=range(200), init_func=init, blit=True, interval=50)
 
 # For Jupyter notebook:
@@ -590,7 +589,7 @@ Verander nu de code zodanig dat de beginsnelheid gegeven wordt door $\vec{v}=5\h
 # Simulation parameters
 dt = 0.1         # time step
 num_steps = 500  # number of time steps
-
+particle = ParticleClass(m=1.0, v=[5.0, 3], r=[0.0, 0.0],R=1.0)
 ### YOUR CODE HERE ###
 
 # Create the figure and axis
@@ -615,6 +614,14 @@ def update(frame):
     particle.update_position()
     dot.set_data([particle.r[0]], [particle.r[1]])
     ### YOUR CODE HERE ###
+    if particle.r[0]>10:
+        particle.v[0]=-particle.v[0]
+    if particle.r[0]<-10:
+        particle.v[0]=-particle.v[0]
+    if particle.r[1]>10:
+        particle.v[1]=-particle.v[1]
+    if particle.r[1]<-10:
+        particle.v[1]=-particle.v[1]
     return dot,
 
 # Create animation
@@ -1040,9 +1047,10 @@ class ParticleClass:
 
 # Simulation parameters
 dt = 0.1         # time step
-num_steps = 530  # number of time steps
+num_steps = 530
+# number of time steps
 m1 = 1.0
-m2 = 1.0
+m2 = 10000.0
 
 particleA = ParticleClass(m=m1, v=[0, 0], r=[-4.0, 0.0],R=0.45)  
 particleB = ParticleClass(m=m2, v=[-1, 0], r=[-2.0, 0.0],R=0.45)  
@@ -1072,7 +1080,7 @@ counter_text = ax.text(-9.5, 9, "")
 def init():
     dot.set_data([], [])
     return dot,
-
+count = 0
 # Update function for each frame
 def update(frame):
     global counter
@@ -1089,6 +1097,7 @@ def update(frame):
         vA, vB, mA, mB, rA, rB = particleA.v, particleB.v, particleA.m, particleB.m, particleA.r, particleB.r
         vA_new = vA - 2 * mB / (mA + mB) * np.dot(vA - vB, rA - rB) / (1e-12+np.linalg.norm(rA - rB))**2 * (rA - rB)
         vB_new = vB - 2 * mA / (mA + mB) * np.dot(vB - vA, rB - rA) / (1e-12+np.linalg.norm(rB - rA))**2 * (rB - rA)
+        counter +=1
         particleA.v = vA_new
         particleB.v = vB_new
         ### YOUR CODE HERE ###
@@ -1097,11 +1106,10 @@ def update(frame):
     # wall collision detection and response
     if particleA.r[0]**2>100: # Check if particle is outside the bounds, np.abs could be used but is slower
         particleA.v[0] = -particleA.v[0]
-        ### YOUR CODE HERE ###
+        counter+=1
     if particleA.r[1]**2>100: 
         particleA.v[1] = -particleA.v[1]
-        ### YOUR CODE HERE ###
-
+        counter +=1
     dot.set_data([particleB.r[0]], [particleB.r[1]])
     if particleB.r[0]**2>100: 
         particleB.v[0] = -particleB.v[0]
