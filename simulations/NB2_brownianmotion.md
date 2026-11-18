@@ -48,7 +48,14 @@ Als model gaan we uit van een deel van het volume van een fietsband die onder ee
 ```
 
 ```{solution} ex-recap-1
-### YOUR CODE HERE ###
+k_B = 1.380649e-23 #J/K 
+T = 293 #K 
+p = 10e5 #Pa
+
+V_molecuul = k_B * T / p 
+L = (V_molecuul**(1/3))*10**9
+
+print('de lengte ribbe is:', L, 'nm')
 ```
 
 De simulatie die we gaan maken bevat maar twee dimensies. We kunnen het oppervlak per deeltje in deze simulatie daarom kiezen als het zojuist berekende $V_\text{molecuul}^{2/3}$.
@@ -68,7 +75,13 @@ Ook deze heb je hierna nodig.
 ```
 
 ```{solution} ex-recap-2
-### YOUR CODE HERE ###
+k_B = 1.380649e-23
+T = 293
+m = 4.8e-26
+f = 2
+
+v = np.sqrt(f * k_B * T / m)
+print('de gemiddelde snelheid is:', v,  'm/s')
 ```
 
 ```{exercise} Radius
@@ -88,11 +101,11 @@ Bekijk de waarde van `DT`. Hoe zorgt deze waaarde ervoor dat het onwaarschijnlij
 Onze simulatie modelleert dus een klein systeem zonder rekening te houden met de kracht tussen de luchtmoleculen. Je zult zien dat we toch al behoorlijk wat van de processor vragen om deze berekeningen te doen. Om een meer realistische modelsimulatie te maken is daarom een serieuze uitdaging, die veel wiskunde en programmeerervaring vraagt. Op dit ogenblik wordt dit bijvoorbeeld gevraagd bij een van de eerste opdrachten van het vak 'Computational Physics' van de master Applied Physics. 
 
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
-BOX_SIZE_0 = 10                # Hoogte en lengte startvolume
-N = 40                         # Aantal deeltjes
-V_0 = 1                        # Startsnelheid van deeltjes
-RADIUS = 0.3                   # Straal van moleculen
-DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen
+BOX_SIZE_0 = 10                 # Hoogte en lengte startvolume (m)
+N = 40                         # Aantal deeltjes (1)
+V_0 = 1                        # Startsnelheid van deeltjes (m/s)
+RADIUS = 0.3                   # Straal van moleculen (m)
+DT = 0.1 * RADIUS / V_0        # Tijdstap om geen botsing te missen (s)
 ```
 
 ### Particle class
@@ -183,8 +196,12 @@ Leg uit dat d.m.v. onderstaande code de deeltjes allemaal dezelfde snelheid hebb
 ```
 
 ```{solution} ex-recap-5
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+vy = np.sqrt(V_0^2 - vx^2) 
+dit kwadrateren geeft vy^2 = V_0^2 - vx^2
+dus: V_0 = np.sqrt(vx^2 + vy^2)
+hieruit volgt dat alle snelheden een constante grootte hebben maar verschillende richtingen.
+
+Door de random.uniform functie worden de deeltjes uniform verdeeld over de box.
 ```
 
 ```python tags=["NB2_init"] editable=true slideshow={"slide_type": ""}
@@ -209,8 +226,8 @@ Leg uit hoe er in onderstaande code wordt voorkomen dat de botsing tussen twee d
 ```
 
 ```{solution} ex-recap-6
-Jouw antwoord hier...
-### YOUR CODE HERE ###
+als er deeltjes op elkaar botsen (collide_detection) wordt de snelheid aangepast d.m.v. particle_collision.
+Ook wordt hier elk deeltje onderling gecheckt met elk ander deeltje van de lijst.
 ```
 
 ```python editable=true slideshow={"slide_type": ""} tags=["NB2_init"]
@@ -298,6 +315,7 @@ def update(frame):
     return dot,
 
 ani = FuncAnimation(fig, update, frames=100, init_func=init, blit=True, interval=50)
+plt.close(fig)
 HTML(ani.to_jshtml())
 ```
 
@@ -318,11 +336,25 @@ energy_tot = []
 create_particles(particles)
 for i in range(100):
     take_time_step(particles)
-    # voeg de som van de kinetische energie in deze stap toe aan energy_tot 
-    ### YOUR CODE HERE ###
+    # voeg de som van de kinetische energie in deze stap toe aan energy_tot
+    energy = 0
+    for p in particles:
+        energy += 1/2 * p.m * np.dot(p.v, p.v)
+    energy_tot.append(energy)
 
 # plot de figuur van de kinetische energie als functie van de tijd. 
-### YOUR CODE HERE ###
+tijdstappen = np.arange(1,101,1)
+
+plt.figure()
+plt.plot(tijdstappen, energy_tot, '.k')
+plt.xlabel('t (s)')
+plt.ylabel('E_k total (J)')
+plt.show()
+
+```
+
+```python
+
 ```
 
 ```{exercise} 
@@ -331,37 +363,7 @@ Als je heel nauwkeurig naar de waarde voor de totale kinetische energie kijkt, d
 ```
 
 ```{solution} ex-recap-8
-Jouw antwoord hier...
-### YOUR CODE HERE ###
-```
-
-
-Voor simulaties waarbij de kans op botsingen heel groot is (richting vloeistof), is er een handige methode om de snelheid van je simulatie op te voeren.
-In onderstaande code wordt daar een voorbeeld van gegeven.
-
-```{code} python
-def handle_collisions(particles):
-    ignore_list = []
-    for i, p1 in enumerate(particles):
-        if p1 in ignore_list:
-            continue
-        for j, p2 in enumerate(particles):
-            if p1 is p2:
-                continue                
-            if collide_detection(particles[i], particles[j]):
-                particle_collision(particles[i], particles[j])
-                ignore_list.append(p2)
-```
-
-```{exercise} Controleren van beperkingen 🌶 
-:label: ex-recap-10
-
-Leg uit wat deze code precies doet. 
-
-Maak een script waarbij twee deeltjes met dezelfde (absolute) snelheid op een derde deeltje afbewegen en tegelijk zouden botsen.
-- Laat zien dat 'slechts' twee deeltjes een interactie met elkaar aan gaan.
-- Leg uit waarom dat een acceptabele benadering is wanneer je veel deeltjes botsingen per tijdseenheid hebt.
-- Voor wie een uitdaging wil: maak een grafiek met het aantal botsingen per tijdseenheid. Dit om bovenstaande benadering verder te verantwoorden.
+Dit gebeurt op een schaal van 10^-15 J. Dit kan zijn veroorzaakt door het afronden van de computer.
 ```
 
 
